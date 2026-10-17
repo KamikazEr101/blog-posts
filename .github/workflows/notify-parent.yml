@@ -1,0 +1,26 @@
+name: Notify parent deployment
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch parent deployment
+        env:
+          GH_TOKEN: ${{ secrets.BLOG_REPO_DISPATCH_TOKEN }}
+          POSTS_SHA: ${{ github.sha }}
+        run: |
+          test -n "$GH_TOKEN"
+          curl --fail-with-body --request POST \
+            --url https://api.github.com/repos/KamikazEr101/KamikazEr101.github.io/dispatches \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "{\"event_type\":\"posts-updated\",\"client_payload\":{\"posts_sha\":\"$POSTS_SHA\"}}"
